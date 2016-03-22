@@ -1,0 +1,100 @@
+#!/bin/sh
+#
+# chkconfig:   - 98 02
+# description: Platform9 Lease Manager (code -named Mors)
+
+### BEGIN INIT INFO
+# Provides: pf9-mors
+# Required-Start: $remote_fs $network $syslog
+# Required-Stop: $remote_fs $syslog
+# Default-Stop: 0 1 6
+# Short-Description: Mors Server
+# Description: Platform9 Lease Manager (code -named Mors)
+### END INIT INFO
+
+. /etc/rc.d/init.d/functions
+
+name=pf9-mors
+prog=pf9-mors
+bindir=/opt/pf9/$name/bin
+python=$bindir/python
+exec="$python $bindir/pf9_mors.py"
+pidfile="/var/run/$name.pid"
+log_stdout="/var/log/pf9/$name-out.log"
+
+[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+
+lockfile=/var/lock/subsys/$prog
+
+start() {
+    [ -x $python ] || exit 5
+    echo -n $"Starting $prog: "
+    daemon --pidfile $pidfile "$exec >> $log_stdout 2>&1 & echo \$! > $pidfile"
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    killproc -p $pidfile $prog
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    restart
+}
+
+force_reload() {
+    restart
+}
+
+rh_status() {
+    status -p $pidfile $prog
+}
+
+rh_status_q() {
+    rh_status >/dev/null 2>&1
+}
+
+
+case "$1" in
+    start)
+        rh_status_q && exit 0
+        $1
+        ;;
+    stop)
+        rh_status_q || exit 0
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    reload)
+        rh_status_q || exit 7
+        $1
+        ;;
+    force-reload)
+        force_reload
+        ;;
+    status)
+        rh_status
+        ;;
+    condrestart|try-restart)
+        rh_status_q || exit 0
+        restart
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload}"
+        exit 2
+esac
+exit $?
