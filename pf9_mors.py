@@ -45,4 +45,4 @@ if __name__ == '__main__':
     parser = _get_arg_parser()
     conf = ConfigParser.ConfigParser()
     conf.readfp(open(parser.config_file))
-    start_server(conf, parser.pate_file)
+    start_server(conf, parser.paste_file)

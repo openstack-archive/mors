@@ -40,6 +40,7 @@ ${APP_RPM_VENV}:
 
 stage: $(APP_RPM_DIR) $(APP_RPM_STAGE_DIR) $(APP_RPM_VENV)
 	cp -r $(SRC_DIR)/etc/ $(APP_RPM_STAGE_DIR)/
+	cp $(SRC_DIR)/mors_repo/migrate.cfg $(APP_RPM_VENV)/lib/python2.7/site-packages/mors_repo/
 
 ${APP_RPM}: stage
 	echo "RPM build "
