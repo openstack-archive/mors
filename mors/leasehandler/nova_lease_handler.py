@@ -24,6 +24,7 @@ class NovaLeaseHandler:
                              tenant_id=self.conf.get("nova", "tenant_uuid"),
                              api_key=self.conf.get("nova", "password"),
                              auth_url=self.conf.get("nova", "auth_url"),
+                             insecure=True, # Insecure to handle test systems
                              connection_pool=False)
 
     def get_all_vms(self, tenant_uuid):
@@ -44,7 +45,7 @@ class NovaLeaseHandler:
     def _delete_vm(self, nova, vm_uuid):
         try:
             logger.info("Deleting VM %s", vm_uuid)
-            nova.server.delete(vm_uuid)
+            nova.servers.delete(vm_uuid)
             return SUCCESS_OK
         except novaclient.exceptions.NotFound:
             return ERR_NOT_FOUND
