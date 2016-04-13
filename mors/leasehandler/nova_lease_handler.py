@@ -11,7 +11,7 @@ DATE_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 def get_vm_data(data):
     return {'instance_uuid': data.id,
             'tenant_uuid': data.tenant_id,
-            'created_at': datetime.strptime(data.created)}
+            'created_at': datetime.strptime(data.created, DATE_FORMAT)}
 
 class NovaLeaseHandler:
     def __init__(self, conf):
