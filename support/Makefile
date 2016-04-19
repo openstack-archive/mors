@@ -51,7 +51,6 @@ ${APP_RPM}: stage
 		--version $(PF9_VERSION) \
 		--iteration $(BUILD_NUMBER) \
 		--provides $(APP_NAME) \
-		--provides pf9app \
 		--license "Commercial" \
 		--architecture $(APP_ARCHITECTURE) \
 		--url "http://www.platform9.net" \
