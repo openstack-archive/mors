@@ -152,8 +152,25 @@ def test_get_instance():
     logger.debug(r.text)
     assert_equal(r.status_code, 200)
 
-
 @test(depends_on=[test_get_instance])
+def test_update_instance():
+    expiry = datetime.utcnow()
+    expiry_str = datetime.strftime(expiry, DATE_FORMAT)
+    r = requests.put('http://127.0.0.1:' + port + '/v1/tenant/' + tenant_id1 + '/instance/' + instance_id1,
+                      json={"instance_uuid": instance_id1, "expiry": expiry_str},
+                      headers=headers)
+    logger.debug(r.text)
+    assert_equal(r.status_code, 200)
+
+@test(depends_on=[test_update_instance])
+def test_get_instance2():
+    r = requests.get('http://127.0.0.1:' + port + '/v1/tenant/' + tenant_id1 + '/instance/' + instance_id1,
+                     headers=headers)
+    logger.debug(r.text)
+    assert_equal(r.status_code, 200)
+
+
+@test(depends_on=[test_get_instance2])
 def test_deleted_instance():
     eventlet.greenthread.sleep(50)
     # The instance lease should be deleted by now

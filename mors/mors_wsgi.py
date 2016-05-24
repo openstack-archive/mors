@@ -109,7 +109,7 @@ def add_update_vm_lease(tenant_id, instance_id):
     if request.method == "POST":
         lease_manager.add_instance_lease(get_context(), tenant_id, lease_obj)
     else:
-        lease_manager.update_tenant_lease(get_context(), tenant_id, lease_obj)
+        lease_manager.update_instance_lease(get_context(), tenant_id, lease_obj)
     return jsonify({'success': True}), 200, {'ContentType': 'application/json'}
 
 
