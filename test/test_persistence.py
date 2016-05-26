@@ -22,10 +22,10 @@ def teardown_module(mod):
 def test_apis():
     tenant_id = "aasdsadfsadf"
     tenant_user1 = "a@xyz.com"
-    expiry_day1 = 3
+    expiry_mins1 = 3
     tenant_created_date = datetime.utcnow()
 
-    db_persistence.add_tenant_lease(tenant_id, expiry_day1, tenant_user1, tenant_created_date)
+    db_persistence.add_tenant_lease(tenant_id, expiry_mins1, tenant_user1, tenant_created_date)
     t_lease = db_persistence.get_tenant_lease(tenant_id)
     assert (t_lease.tenant_uuid == tenant_id)
     assert (t_lease.created_by == tenant_user1)
@@ -34,7 +34,7 @@ def test_apis():
     # Now try update
     tenant_user2 = "b@xyz.com"
     tenant_updated_date = datetime.utcnow()
-    db_persistence.update_tenant_lease(tenant_id, expiry_day1, tenant_user2, tenant_updated_date)
+    db_persistence.update_tenant_lease(tenant_id, expiry_mins1, tenant_user2, tenant_updated_date)
     t_lease = db_persistence.get_tenant_lease(tenant_id)
     assert (t_lease.tenant_uuid == tenant_id)
     assert (t_lease.created_by == tenant_user1)

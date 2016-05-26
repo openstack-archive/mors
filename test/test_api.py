@@ -49,7 +49,7 @@ instance_id1 = "instanceid-1-t-1"
 instance_id2 = "instanceid-2-t-1"
 instance_id3 = "instanceid-3-t-2"
 
-expiry_day1 = 4
+expiry_mins1 = 4
 port = 8080
 
 
@@ -94,7 +94,7 @@ def initialize():
 @test(depends_on=[initialize])
 def test_create_tenant():
     r = requests.post('http://127.0.0.1:' + port + '/v1/tenant/' + tenant_id1,
-                      json={"vm_lease_policy": {"tenant_uuid": tenant_id1, "expiry_days": expiry_day1}},
+                      json={"vm_lease_policy": {"tenant_uuid": tenant_id1, "expiry_mins": expiry_mins1}},
                       headers=headers)
     logger.debug(r.text)
     assert_equal(r.status_code, 200)
@@ -103,7 +103,7 @@ def test_create_tenant():
 @test(depends_on=[test_create_tenant])
 def test_update_tenant():
     r = requests.put('http://127.0.0.1:' + port + '/v1/tenant/' + tenant_id1,
-                     json={"vm_lease_policy": {"tenant_uuid": tenant_id1, "expiry_days": 3}}, headers=headers)
+                     json={"vm_lease_policy": {"tenant_uuid": tenant_id1, "expiry_mins": 3}}, headers=headers)
     logger.debug(r.text)
     assert_equal(r.status_code, 200)
 
@@ -127,7 +127,7 @@ def test_get_tenant():
 def test_create_tenant_neg():
     # Try creating again and it should result in error
     r = requests.post('http://127.0.0.1:' + port + '/v1/tenant/' + tenant_id1,
-                      json={"vm_lease_policy": {"tenant_uuid": tenant_id1, "expiry_days": expiry_day1}},
+                      json={"vm_lease_policy": {"tenant_uuid": tenant_id1, "expiry_mins": expiry_mins1}},
                       headers=headers)
     logger.debug(r.text)
     assert_equal(r.status_code, 409)
@@ -187,7 +187,7 @@ def test_delete_instance_lease():
 @test(depends_on=[test_deleted_instance])
 def test_create_tenant2():
     r = requests.post('http://127.0.0.1:' + port + '/v1/tenant/' + tenant_id2,
-                      json={"vm_lease_policy": {"tenant_uuid": tenant_id2, "expiry_days": expiry_day1}},
+                      json={"vm_lease_policy": {"tenant_uuid": tenant_id2, "expiry_mins": expiry_mins1}},
                       headers=headers)
     logger.debug(r.text)
     assert_equal(r.status_code, 200)

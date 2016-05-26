@@ -60,15 +60,15 @@ class DbPersistence:
         return conn.execute(self.tenant_lease.select(tenant_uuid == tenant_uuid)).first()
 
     @db_connect(transaction=True)
-    def add_tenant_lease(self, conn, tenant_uuid, expiry_days, created_by, created_at):
-        logger.debug("Adding tenant lease %s %d %s %s", tenant_uuid, expiry_days, str(created_at), created_by)
-        conn.execute(self.tenant_lease.insert(), tenant_uuid=tenant_uuid, expiry_days=expiry_days,
+    def add_tenant_lease(self, conn, tenant_uuid, expiry_mins, created_by, created_at):
+        logger.debug("Adding tenant lease %s %d %s %s", tenant_uuid, expiry_mins, str(created_at), created_by)
+        conn.execute(self.tenant_lease.insert(), tenant_uuid=tenant_uuid, expiry_mins=expiry_mins,
                      created_at=created_at, created_by=created_by)
 
     @db_connect(transaction=True)
-    def update_tenant_lease(self, conn, tenant_uuid, expiry_days, updated_by, updated_at):
-        logger.debug("Updating tenant lease %s %d %s %s", tenant_uuid, expiry_days, str(updated_at), updated_by)
-        conn.execute(self.tenant_lease.update(tenant_uuid == tenant_uuid), expiry_days=expiry_days,
+    def update_tenant_lease(self, conn, tenant_uuid, expiry_mins, updated_by, updated_at):
+        logger.debug("Updating tenant lease %s %d %s %s", tenant_uuid, expiry_mins, str(updated_at), updated_by)
+        conn.execute(self.tenant_lease.update(tenant_uuid == tenant_uuid), expiry_mins=expiry_mins,
                      updated_at=updated_at, updated_by=updated_by)
 
     @db_connect(transaction=True)

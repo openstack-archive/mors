@@ -18,7 +18,7 @@ def get_tenant_lease_data(data):
     :param data: database row object
     """
     return {'vm_lease_policy': {'tenant_uuid': data['tenant_uuid'],
-                                'expiry_days': data['expiry_days'],
+                                'expiry_mins': data['expiry_mins'],
                                 'created_at': data['created_at'],
                                 'created_by': data['created_by'],
                                 'updated_at': data['updated_at'],
@@ -55,7 +55,7 @@ class LeaseManager:
         logger.info("Adding tenant lease %s", tenant_obj)
         self.domain_mgr.add_tenant_lease(
             tenant_obj['tenant_uuid'],
-            tenant_obj['expiry_days'],
+            tenant_obj['expiry_mins'],
             context.user_id,
             datetime.utcnow())
 
@@ -63,7 +63,7 @@ class LeaseManager:
         logger.info("Update tenant lease %s", tenant_obj)
         self.domain_mgr.update_tenant_lease(
             tenant_obj['tenant_uuid'],
-            tenant_obj['expiry_days'],
+            tenant_obj['expiry_mins'],
             context.user_id,
             datetime.utcnow())
 
@@ -131,11 +131,11 @@ class LeaseManager:
 
     # Could have used a generator here, would save memory but wonder if it is a good idea given the error conditions
     # This is a simple implementation which goes and deletes VMs one by one
-    def _get_vms_to_delete_for_tenant(self, tenant_uuid, expiry_days):
+    def _get_vms_to_delete_for_tenant(self, tenant_uuid, expiry_mins):
         vms_to_delete = []
         vm_ids_to_delete = set()
         now = datetime.utcnow()
-        add_days = timedelta(days=expiry_days)
+        add_seconds = timedelta(seconds=expiry_mins*60)
         instance_leases = self.get_tenant_and_associated_instance_leases(None, tenant_uuid)['all_vms']
         for i_lease in instance_leases:
             if now > i_lease['expiry']:
@@ -147,7 +147,7 @@ class LeaseManager:
 
         tenant_vms = self.lease_handler.get_all_vms(tenant_uuid)
         for vm in tenant_vms:
-            expiry_date = vm['created_at'] + add_days
+            expiry_date = vm['created_at'] + add_seconds
             if now > expiry_date and not (vm['instance_uuid'] in vm_ids_to_delete):
                 logger.info("Instance %s queued up for deletion creation date %s", vm['instance_uuid'],
                             vm['created_at'])
@@ -159,7 +159,7 @@ class LeaseManager:
         return vms_to_delete
 
     def _delete_vms_for_tenant(self, t_lease):
-        tenant_vms_to_delete = self._get_vms_to_delete_for_tenant(t_lease['tenant_uuid'], t_lease['expiry_days'])
+        tenant_vms_to_delete = self._get_vms_to_delete_for_tenant(t_lease['tenant_uuid'], t_lease['expiry_mins'])
 
         # Keep it simple and delete them serially
         result = self.lease_handler.delete_vms(tenant_vms_to_delete)
