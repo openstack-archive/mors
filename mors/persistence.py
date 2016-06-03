@@ -57,7 +57,7 @@ class DbPersistence:
 
     @db_connect(transaction=False)
     def get_tenant_lease(self, conn, tenant_uuid):
-        return conn.execute(self.tenant_lease.select(tenant_uuid == tenant_uuid)).first()
+        return conn.execute(self.tenant_lease.select(self.tenant_lease.c.tenant_uuid == tenant_uuid)).first()
 
     @db_connect(transaction=True)
     def add_tenant_lease(self, conn, tenant_uuid, expiry_mins, created_by, created_at):
@@ -68,8 +68,10 @@ class DbPersistence:
     @db_connect(transaction=True)
     def update_tenant_lease(self, conn, tenant_uuid, expiry_mins, updated_by, updated_at):
         logger.debug("Updating tenant lease %s %d %s %s", tenant_uuid, expiry_mins, str(updated_at), updated_by)
-        conn.execute(self.tenant_lease.update(tenant_uuid == tenant_uuid), expiry_mins=expiry_mins,
-                     updated_at=updated_at, updated_by=updated_by)
+        conn.execute(self.tenant_lease.update().\
+                            where(self.tenant_lease.c.tenant_uuid == tenant_uuid).\
+                                    values(expiry_mins=expiry_mins,
+                                           updated_at=updated_at, updated_by=updated_by))
 
     @db_connect(transaction=True)
     def delete_tenant_lease(self, conn, tenant_uuid):
@@ -80,12 +82,13 @@ class DbPersistence:
 
     @db_connect(transaction=False)
     def get_instance_leases_by_tenant(self, conn, tenant_uuid):
-        return conn.execute(self.instance_lease.select(tenant_uuid == tenant_uuid)).fetchall()
-
+        return conn.execute(self.instance_lease.select(\
+                self.instance_lease.c.tenant_uuid == tenant_uuid)).fetchall()
+ 
     @db_connect(transaction=False)
     def get_instance_lease(self, conn, instance_uuid):
-        return conn.execute(
-            self.instance_lease.select((instance_uuid == instance_uuid))).first()
+        return conn.execute(self.instance_lease.select((\
+                        self.instance_lease.c.instance_uuid == instance_uuid))).first()
 
     @db_connect(transaction=True)
     def add_instance_lease(self, conn, instance_uuid, tenant_uuid, expiry, created_by, created_at):

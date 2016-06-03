@@ -3,7 +3,7 @@
 
 def run_tests():
     from proboscis import TestProgram
-    import test_api
+    import test_api, test_persistence
 
     # Run Proboscis and exit.
     print "Starting tests ---"
