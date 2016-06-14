@@ -134,6 +134,7 @@ class LeaseManager:
     def _get_vms_to_delete_for_tenant(self, tenant_uuid, expiry_mins):
         vms_to_delete = []
         vm_ids_to_delete = set()
+        do_not_delete = set()
         now = datetime.utcnow()
         add_seconds = timedelta(seconds=expiry_mins*60)
         instance_leases = self.get_tenant_and_associated_instance_leases(None, tenant_uuid)['all_vms']
@@ -143,12 +144,14 @@ class LeaseManager:
                 vms_to_delete.append(i_lease)
                 vm_ids_to_delete.add(i_lease['instance_uuid'])
             else:
+                do_not_delete.add(i_lease['instance_uuid'])
                 logger.debug("Ignoring vm, vm not expired yet %s", i_lease['instance_uuid'])
 
         tenant_vms = self.lease_handler.get_all_vms(tenant_uuid)
         for vm in tenant_vms:
             expiry_date = vm['created_at'] + add_seconds
-            if now > expiry_date and not (vm['instance_uuid'] in vm_ids_to_delete):
+            if now > expiry_date and vm['instance_uuid'] not in do_not_delete \
+                                and vm['instance_uuid'] not in vm_ids_to_delete:
                 logger.info("Instance %s queued up for deletion creation date %s", vm['instance_uuid'],
                             vm['created_at'])
                 vms_to_delete.append(vm)
