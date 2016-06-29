@@ -3,7 +3,7 @@ from mors.persistence import DbPersistence
 import uuid
 import logging
 from migrate.versioning.api import upgrade,create,version_control
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import shutil
 
@@ -39,6 +39,19 @@ def _verify_tenant_lease(tenants):
         if "updated_at" in tenants[tenant].keys():
             assert (t_lease.updated_at == tenants[tenant]["updated_at"])
 
+def _verify_instance_lease(instances):
+    for instance_uuid in instances:
+        instance = instances[instance_uuid]
+        i_lease = db_persistence.get_instance_lease(instance['instance_uuid'])
+        assert (i_lease.instance_uuid == instance['instance_uuid'])
+        assert (i_lease.tenant_uuid == instance['tenant_uuid'])
+        assert (i_lease.expiry == instance['expiry'])
+        assert (i_lease.created_by == instance["created_by"])
+        if "updated_by" in instance.keys():
+            assert (i_lease.updated_by == instance["updated_by"])
+        if "updated_at" in instance.keys():
+            assert (i_lease.updated_at == instance["updated_at"])
+
 @test(depends_on=[setup_module])
 def test_apis():
     tenants = {"tenant-1": { "user": "a@xyz.com",
@@ -63,22 +76,42 @@ def test_apis():
         tenants[tenant]["updated_at"] = tenant_updated_date
         tenant_values = tenants[tenant]
         db_persistence.update_tenant_lease(tenant, tenant_values["expiry_mins"],
-                                       tenant_values["updated_by"], tenant_values["updated_at"])
+                                           tenant_values["updated_by"],
+                                           tenant_values["updated_at"])
     _verify_tenant_lease(tenants)
 
+    now = datetime.utcnow()
     # Instance lease now
-    instance_uuids = [str(uuid.uuid4()), str(uuid.uuid4())]
+    instances = {"instance-1": {"instance_uuid": "instance-1",
+                                "tenant_uuid": "tenant-1",
+                                "expiry": now,
+                                "created_at": now,
+                                "created_by": "d@xyz.com"},
+                 "instance-2": {"instance_uuid": "instance-2",
+                                "tenant_uuid": "tenant-2",
+                                "expiry": now + timedelta(seconds=60),
+                                "created_at": now + timedelta(seconds=60),
+                                "created_by": "e@xyz.com"}}
     tenant_id = tenants.keys()[0]
     now = datetime.utcnow()
-    for instance_uuid in instance_uuids:
-        db_persistence.add_instance_lease(instance_uuid, tenant_id, now, tenants[tenant_id]["user"], now)
+    for instance_uuid in instances:
+        instance = instances[instance_uuid]
+        db_persistence.add_instance_lease(instance['instance_uuid'], instance['tenant_uuid'],
+                                          instance['expiry'], instance["created_by"],
+                                          instance["created_at"])
+    _verify_instance_lease(instances)
 
-    for instance_uuid in instance_uuids:
-        logger.debug("1" + str(tenant_id))
-        logger.debug("2"+ str(instance_uuid)) 
-        i_lease = db_persistence.get_instance_lease(instance_uuid)
-        assert (i_lease.instance_uuid == instance_uuid)
-        assert (i_lease.tenant_uuid == tenant_id)
-        assert (i_lease.expiry == now)
-        assert (i_lease.created_by == tenants[tenant_id]["user"])
+    newtime1 = datetime.utcnow() + timedelta(seconds=240)
+    newtime2 = datetime.utcnow() + timedelta(seconds=120)
+    instances['instance-1']['expiry'] = newtime1
+    instances['instance-1']['updated_at'] = newtime1
+    instances['instance-2']['expiry'] = newtime2
+    instances['instance-2']['updated_at'] = newtime2
 
+    for instance_uuid in instances:
+        instance = instances[instance_uuid]
+        db_persistence.update_instance_lease(instance['instance_uuid'], instance['tenant_uuid'],
+                                             instance['expiry'], instance["created_by"],
+                                             instance["updated_at"])
+
+    _verify_instance_lease(instances)

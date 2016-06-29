@@ -100,9 +100,10 @@ class DbPersistence:
     @db_connect(transaction=True)
     def update_instance_lease(self, conn, instance_uuid, tenant_uuid, expiry, updated_by, updated_at):
         logger.debug("Updating instance lease %s %s %s %s", instance_uuid, tenant_uuid, expiry, updated_by)
-        conn.execute(self.instance_lease.update(instance_uuid == instance_uuid), tenant_uuid=tenant_uuid,
-                     expiry=expiry,
-                     updated_at=updated_at, updated_by=updated_by)
+        conn.execute(self.instance_lease.update().\
+                        where(self.instance_lease.c.instance_uuid == instance_uuid).\
+                        values(tenant_uuid=tenant_uuid, expiry=expiry,
+                               updated_at=updated_at, updated_by=updated_by))
 
     @db_connect(transaction=True)
     def delete_instance_leases(self, conn, instance_uuids):
