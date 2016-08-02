@@ -13,19 +13,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from migrate.versioning.api import upgrade, create, version_control
-import ConfigParser, os
-import requests
+import ConfigParser
+import os
+import sys;
+
 import eventlet
-from pf9_mors import start_server
+import requests
+from migrate.versioning.api import upgrade, version_control
+
+print sys.path
+from mors.pf9_mors import start_server
 from mors.mors_wsgi import DATE_FORMAT
 import logging, sys
 from datetime import datetime, timedelta
 from proboscis.asserts import assert_equal
-from proboscis.asserts import assert_false
-from proboscis.asserts import assert_raises
-from proboscis.asserts import assert_true
-from proboscis import SkipTest
 from proboscis import test
 import shutil
 from mors.leasehandler.fake_lease_handler import FakeLeaseHandler

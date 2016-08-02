@@ -16,7 +16,7 @@ limitations under the License.
 """
 from setuptools import setup
 
-setup(name='pf9-mors',
+setup(name='mors',
       version='0.1',
       description='Platform9 Mors (lease manager)',
       author='Platform9',
@@ -46,5 +46,5 @@ setup(name='pf9-mors',
           'nose',
           'proboscis'
       ],
-      scripts=['pf9_mors.py', 'mors_manage.py']
+      scripts=['mors/pf9_mors.py', 'mors/mors_manage.py']
       )

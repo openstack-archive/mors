@@ -15,12 +15,11 @@ limitations under the License.
 """
 def run_tests():
     from proboscis import TestProgram
+
     import test_api, test_persistence
 
     # Run Proboscis and exit.
-    print "Starting tests ---"
     TestProgram().run_and_exit()
-    print "Tests done ---"
 
 if __name__ == '__main__':
     print "Run tests"
