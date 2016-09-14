@@ -31,9 +31,7 @@ def get_vm_data(data):
 class NovaLeaseHandler:
     def __init__(self, conf):
         self.conf = conf
-
-    def _get_nova_client(self):
-        return client.Client(self.conf.get("nova", "version"),
+        self.nova_client = client.Client(self.conf.get("nova", "version"),
                              username=self.conf.get("nova", "user_name"),
                              region_name=self.conf.get("nova", "region_name"),
                              tenant_id=self.conf.get("nova", "tenant_uuid"),
@@ -41,6 +39,9 @@ class NovaLeaseHandler:
                              auth_url=self.conf.get("nova", "auth_url"),
                              insecure=True, # Insecure to handle test systems
                              connection_pool=False)
+
+    def _get_nova_client(self):
+        return self.nova_client
 
     def get_all_vms(self, tenant_uuid):
         """
