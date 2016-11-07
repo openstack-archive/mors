@@ -43,8 +43,7 @@ app.json_encoder = CustomJSONEncoder
 lease_manager = None
 
 @enforce(required=['admin'])
-@app.route("/v1/tenant", methods=['GET'])
-@app.route("/v1/tenant/", methods=['GET'])
+@app.route("/v1/tenant/", methods=['GET'], strict_slashes=False)
 @error_handler
 def get_all_tenants():
     all_tenants = lease_manager.get_tenant_leases(get_context())
@@ -81,10 +80,10 @@ def delete_tenant_lease(tenant_id):
     lease_manager.delete_tenant_lease(get_context(), tenant_id)
     return jsonify({'success': True}), 200, {'ContentType': 'application/json'}
 
-#-- Instnace - tenant related
+#-- Instance - tenant related
 
 @enforce(required=['_member_'])
-@app.route("/v1/tenant/<tenant_id>/instances/", methods=['GET'])
+@app.route("/v1/tenant/<tenant_id>/instances/", methods=['GET'], strict_slashes=False)
 @error_handler
 def get_tenant_and_instances(tenant_id):
     instances = lease_manager.get_tenant_and_associated_instance_leases(get_context(), tenant_id)
