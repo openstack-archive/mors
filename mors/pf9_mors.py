@@ -15,15 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from paste.deploy import loadapp
-from eventlet import wsgi
 import eventlet
+eventlet.monkey_patch()
+from eventlet import wsgi
+from paste.deploy import loadapp
 import argparse, logging
 import logging.handlers
 import ConfigParser, os
 from mors import mors_wsgi
 
-eventlet.monkey_patch()
 def _get_arg_parser():
     parser = argparse.ArgumentParser(description="Lease Manager for VirtualMachines")
     parser.add_argument('--config-file', dest='config_file', default='/etc/pf9/pf9-mors.ini')

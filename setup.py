@@ -43,6 +43,7 @@ setup(name='mors',
           'sqlalchemy-migrate==0.9.5',
           'PyMySQL',
           'eventlet==0.18.4',
+          'requests==2.13',
           'nose',
           'proboscis'
       ],
