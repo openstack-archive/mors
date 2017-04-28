@@ -13,10 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import functools
+import logging
+
+from sqlalchemy import Table, MetaData
+from sqlalchemy import create_engine
 from sqlalchemy.pool import QueuePool
-from sqlalchemy import create_engine, text
-from sqlalchemy import Table, Column, Integer, String, MetaData, DateTime
-import logging, functools
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,7 @@ def db_connect(transaction=False):
     """
     Generates a decorator that get connection from a pool and returns
     it to the pool when the internal function is done
-    :param transaction bool: should this function create and end transaction.
+    :param transaction: (boolean) should this function create and end transaction.
     """
 
     def _db_connect(fun):
@@ -36,6 +38,7 @@ def db_connect(transaction=False):
 
         @functools.wraps(fun)
         def newfun(self, *args, **kwargs):
+            trans = None
             conn = self.engine.connect()
             if transaction:
                 trans = conn.begin()
@@ -44,7 +47,7 @@ def db_connect(transaction=False):
                 if transaction:
                     trans.commit()
                 return ret
-            except Exception as e:
+            except Exception:
                 if transaction:
                     trans.rollback()
                 logger.exception("Error during transaction ")
@@ -81,26 +84,26 @@ class DbPersistence:
     @db_connect(transaction=True)
     def update_tenant_lease(self, conn, tenant_uuid, expiry_mins, updated_by, updated_at):
         logger.debug("Updating tenant lease %s %d %s %s", tenant_uuid, expiry_mins, str(updated_at), updated_by)
-        conn.execute(self.tenant_lease.update().\
-                            where(self.tenant_lease.c.tenant_uuid == tenant_uuid).\
-                                    values(expiry_mins=expiry_mins,
-                                           updated_at=updated_at, updated_by=updated_by))
+        conn.execute(self.tenant_lease.update().where(
+            self.tenant_lease.c.tenant_uuid == tenant_uuid).
+                     values(expiry_mins=expiry_mins,
+                            updated_at=updated_at, updated_by=updated_by))
 
     @db_connect(transaction=True)
     def delete_tenant_lease(self, conn, tenant_uuid):
         # Should we just soft delete ?
         logger.debug("Deleting tenant lease %s", tenant_uuid)
-        conn.execute(self.tenant_lease.delete().where(tenant_uuid == tenant_uuid))
-        conn.execute(self.instance_lease.delete().where(tenant_uuid == tenant_uuid))
+        conn.execute(self.tenant_lease.delete().where(self.tenant_lease.c.tenant_uuid == tenant_uuid))
+        conn.execute(self.instance_lease.delete().where(self.instance_lease.c.tenant_uuid == tenant_uuid))
 
     @db_connect(transaction=False)
     def get_instance_leases_by_tenant(self, conn, tenant_uuid):
-        return conn.execute(self.instance_lease.select(\
+        return conn.execute(self.instance_lease.select(
                 self.instance_lease.c.tenant_uuid == tenant_uuid)).fetchall()
  
     @db_connect(transaction=False)
     def get_instance_lease(self, conn, instance_uuid):
-        return conn.execute(self.instance_lease.select((\
+        return conn.execute(self.instance_lease.select((
                         self.instance_lease.c.instance_uuid == instance_uuid))).first()
 
     @db_connect(transaction=True)
@@ -113,10 +116,10 @@ class DbPersistence:
     @db_connect(transaction=True)
     def update_instance_lease(self, conn, instance_uuid, tenant_uuid, expiry, updated_by, updated_at):
         logger.debug("Updating instance lease %s %s %s %s", instance_uuid, tenant_uuid, expiry, updated_by)
-        conn.execute(self.instance_lease.update().\
-                        where(self.instance_lease.c.instance_uuid == instance_uuid).\
-                        values(tenant_uuid=tenant_uuid, expiry=expiry,
-                               updated_at=updated_at, updated_by=updated_by))
+        conn.execute(self.instance_lease.update().where(
+            self.instance_lease.c.instance_uuid == instance_uuid).values
+                     (tenant_uuid=tenant_uuid, expiry=expiry,
+                      updated_at=updated_at, updated_by=updated_by))
 
     @db_connect(transaction=True)
     def delete_instance_leases(self, conn, instance_uuids):
